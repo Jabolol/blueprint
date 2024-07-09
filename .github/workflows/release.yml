@@ -1,0 +1,83 @@
+name: CI
+"on":
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-14
+          - macos-13
+          - windows-latest
+    runs-on: "${{ matrix.os }}"
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure and Build Project
+        uses: threeal/cmake-action@main
+        with:
+          options: |
+            ${{matrix.os == 'windows-latest' && 'CMAKE_GENERATOR_PLATFORM=x64' || '' }}
+          cxx-flags: >-
+            ${{ matrix.os == 'windows-latest' && '/W4 /WX /EHsc' || '-Wall -Wextra -Werror' }}
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ matrix.os }}-artifact"
+          path: |
+            build/Debug/blueprint-x86_64.dll
+            build/libblueprint-x86_64.so
+            build/libblueprint-x86_64.dylib
+            build/libblueprint-aarch64.dylib
+          overwrite: true
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Determine release body
+        id: release_body
+        run: |
+          if [ -z "$(git tag --list)" ]; then
+            git log --oneline --no-decorate > release_body.txt
+          else
+            latest_tag=$(git describe --tags --abbrev=0)
+            git log ${latest_tag}..HEAD --oneline --no-decorate > release_body.txt
+          fi
+      - name: Create Release
+        uses: softprops/action-gh-release@master
+        with:
+          tag_name: draft
+          draft: true
+          files: |
+            artifacts/Debug/blueprint-x86_64.dll
+            artifacts/libblueprint-x86_64.so
+            artifacts/libblueprint-x86_64.dylib
+            artifacts/libblueprint-aarch64.dylib
+          body_path: release_body.txt
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish package
+        run: npx jsr publish
