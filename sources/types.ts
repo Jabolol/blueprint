@@ -8,16 +8,11 @@ export type SupportedOS = {
 };
 
 /**
- * Represents an object that can be disposed.
- */
-export type Dispose = {
-  [Symbol.dispose]: () => void;
-};
-
-/**
  * Represents a Blueprint object.
- * @property {Function} hello - A function that prints a greeting message.
+ * @property version - A function that returns the version of the library.
  */
 export type Blueprint = {
-  hello: () => void;
-} & Dispose;
+  version: () => Deno.PointerValue;
+  create_parser: () => Deno.PointerValue;
+  destroy_parser: (parser: Deno.PointerValue) => void;
+};
