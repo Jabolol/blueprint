@@ -82,6 +82,7 @@ async function init(): Promise<Blueprint & Disposable> {
     version: { parameters: [], result: "pointer" },
     create_parser: { parameters: [], result: "pointer" },
     destroy_parser: { parameters: ["pointer"], result: "void" },
+    parse: { parameters: ["pointer", "pointer", "pointer"], result: "bool" },
   });
 
   const versionPointer = handle.symbols.version();
