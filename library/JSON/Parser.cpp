@@ -68,9 +68,6 @@ Blueprint::JSON::Parser::parse(const std::string &json)
         return std::nullopt;
     }
 
-    // TODO(jabolo): Remove debug print
-    std::cout << ptr->toString() << std::endl;
-
     return ptr;
 }
 
