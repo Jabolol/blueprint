@@ -1,35 +1,29 @@
-import { init } from "~/sources/mod.ts";
+import { b, type InferSchema } from "~/sources/mod.ts";
 
-using handle = await init();
+using handle = await b.init();
 
-const object = {
-  username: "hello",
-  password: "world",
-  age: 20,
-  interests: {
-    programming: true,
-    languages: ["rust", "typescript", "c++"],
-  },
-  friends: [
-    {
-      name: "Alice",
-      age: 21,
-    },
-    {},
-    [12, 13, 14],
+const schema = b.object({
+  name: b.string().length(10),
+  age: b.number().min(18),
+  likes: b.array(b.string()).values(["dogs", "cats"]).max(5),
+  pets: b.array(b.object({
+    name: b.string().length(10),
+    age: b.number().min(0),
+    kind: b.string().enum(["dog", "cat", "bird"]),
+  })).max(3),
+});
+
+const data: InferSchema<typeof schema> = {
+  name: "Javi",
+  age: 21,
+  likes: ["cats", "birds"],
+  pets: [
+    { name: "Lupita", age: 12, kind: "dog" },
   ],
 };
 
-const bytes = new TextEncoder().encode(JSON.stringify(object));
-const _pointer = Deno.UnsafePointer.of(bytes);
+console.log(schema);
 
-const parser = handle.create_parser();
-if (parser === null) {
-  throw new Error("Failed to create parser");
-}
+const result = handle.parse(schema, data);
 
-// parser -> Blueprint::JSON::Parser*
-
-// handle->verify(parser, _pointer, $schema);
-
-handle.destroy_parser(parser);
+console.log(`The schema is ${result ? "valid" : "invalid"}`);
