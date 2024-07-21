@@ -1,5 +1,4 @@
 #include <cassert>
-#include <format>
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -44,28 +43,28 @@ Blueprint::JSON::Parser::Parser()
     };
 }
 
-std::optional<std::shared_ptr<Blueprint::Interfaces::IPrimitive>>
+std::shared_ptr<Blueprint::Interfaces::IPrimitive>
 Blueprint::JSON::Parser::parse(const std::string &json)
 {
     _lexer = Lexer(json);
 
     std::optional<Token> token = _lexer.nextToken();
     if (!token.has_value()) {
-        _error = "Unexpected end of file";
-        return std::nullopt;
+        setError("Unexpected end of file");
+        return nullptr;
     }
 
     auto it = _callbacks.find(token->type());
     if (it == _callbacks.end()) {
-        _error = std::format("Unexpected token '{}'", token->data());
-        return std::nullopt;
+        setError("Unexpected token '{}'", token->data());
+        return nullptr;
     }
 
     std::shared_ptr<Blueprint::Interfaces::IPrimitive> ptr =
         it->second(token.value());
     if (ptr == nullptr) {
         std::cerr << _error << std::endl;
-        return std::nullopt;
+        return nullptr;
     }
 
     return ptr;
@@ -75,19 +74,18 @@ std::shared_ptr<Blueprint::Interfaces::IPrimitive>
 Blueprint::JSON::Parser::parseObject(Token &token)
 {
     if (token.type() != Type::OBJECT_START) {
-        _error = std::format("Expected object start, got '{}'", token.data());
+        setError("Expected object start, got '{}'", token.data());
         return nullptr;
     }
 
     std::optional<Token> current;
-    std::shared_ptr<Primitives::Object> object =
-        std::make_shared<Primitives::Object>();
+    std::shared_ptr object = std::make_shared<Primitives::Object>();
 
     while (current->type() != Type::OBJECT_END) {
         current = _lexer.nextToken();
 
         if (!current.has_value()) {
-            _error = "Unexpected end of file";
+            setError("Unexpected end of file");
             return nullptr;
         }
 
@@ -96,7 +94,7 @@ Blueprint::JSON::Parser::parseObject(Token &token)
         }
 
         if (current->type() != Type::STRING) {
-            _error = std::format("Expected string, got '{}'", current->data());
+            setError("Expected string, got '{}'", current->data());
             return nullptr;
         }
 
@@ -104,32 +102,31 @@ Blueprint::JSON::Parser::parseObject(Token &token)
         current = _lexer.nextToken();
 
         if (!current.has_value()) {
-            _error = "Unexpected end of file after key";
+            setError("Unexpected end of file after key");
             return nullptr;
         }
 
         if (current->type() != Type::COLON) {
-            _error = std::format("Expected colon, got '{}'", current->data());
+            setError("Expected colon, got '{}'", current->data());
             return nullptr;
         }
         current = _lexer.nextToken();
 
         if (!current.has_value()) {
-            _error = "Unexpected end of file";
+            setError("Unexpected end of file");
             return nullptr;
         }
 
         auto it = _callbacks.find(current->type());
         if (it == _callbacks.end()) {
-            _error = std::format("Unexpected token '{}'", current->data());
+            setError("Unexpected token '{}'", current->data());
             return nullptr;
         }
 
         std::shared_ptr<Blueprint::Interfaces::IPrimitive> value =
             it->second(current.value());
         if (value == nullptr) {
-            _error =
-                std::format("Failed to parse value '{}'", current->data());
+            setError("Failed to parse value '{}'", current->data());
             return nullptr;
         }
 
@@ -144,19 +141,18 @@ std::shared_ptr<Blueprint::Interfaces::IPrimitive>
 Blueprint::JSON::Parser::parseArray(Token &token)
 {
     if (token.type() != Type::ARRAY_START) {
-        _error = std::format("Expected array start, got '{}'", token.data());
+        setError("Expected array start, got '{}'", token.data());
         return nullptr;
     }
 
     std::optional<Token> current;
-    std::shared_ptr<Primitives::Array> array =
-        std::make_shared<Primitives::Array>();
+    std::shared_ptr array = std::make_shared<Primitives::Array>();
 
     while (current->type() != Type::ARRAY_END) {
         current = _lexer.nextToken();
 
         if (!current.has_value()) {
-            _error = "Unexpected end of file after array start";
+            setError("Unexpected end of file after array start");
             return nullptr;
         }
 
@@ -166,7 +162,7 @@ Blueprint::JSON::Parser::parseArray(Token &token)
 
         auto it = _callbacks.find(current->type());
         if (it == _callbacks.end()) {
-            _error = std::format("Unexpected token '{}'", current->data());
+            setError("Unexpected token '{}'", current->data());
             return nullptr;
         }
 
@@ -174,8 +170,7 @@ Blueprint::JSON::Parser::parseArray(Token &token)
             it->second(current.value());
 
         if (value == nullptr) {
-            _error =
-                std::format("Failed to parse value '{}'", current->data());
+            setError("Failed to parse value '{}'", current->data());
             return nullptr;
         }
 
@@ -190,7 +185,7 @@ std::shared_ptr<Blueprint::Interfaces::IPrimitive>
 Blueprint::JSON::Parser::parseString(Token &token)
 {
     if (token.type() != Type::STRING) {
-        _error = std::format("Expected string, got '{}'", token.data());
+        setError("Expected string, got '{}'", token.data());
         return nullptr;
     }
 
@@ -201,7 +196,7 @@ std::shared_ptr<Blueprint::Interfaces::IPrimitive>
 Blueprint::JSON::Parser::parseNumber(Token &token)
 {
     if (token.type() != Type::NUMBER) {
-        _error = std::format("Expected number, got '{}'", token.data());
+        setError("Expected number, got '{}'", token.data());
         return nullptr;
     }
 
@@ -212,7 +207,7 @@ std::shared_ptr<Blueprint::Interfaces::IPrimitive>
 Blueprint::JSON::Parser::parseBoolean(Token &token)
 {
     if (token.type() != Type::BOOLEAN) {
-        _error = std::format("Expected boolean, got '{}'", token.data());
+        setError("Expected boolean, got '{}'", token.data());
         return nullptr;
     }
 
@@ -223,7 +218,7 @@ std::shared_ptr<Blueprint::Interfaces::IPrimitive>
 Blueprint::JSON::Parser::parseNull(Token &token)
 {
     if (token.type() != Type::NULL_VALUE) {
-        _error = std::format("Expected null, got '{}'", token.data());
+        setError("Expected null, got '{}'", token.data());
         return nullptr;
     }
 

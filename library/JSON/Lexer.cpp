@@ -1,4 +1,3 @@
-#include <format>
 #include <optional>
 
 #include "JSON/Lexer.hpp"
@@ -27,7 +26,7 @@ std::optional<Blueprint::JSON::Token> Blueprint::JSON::Lexer::parseString()
     }
 
     if (_position > _json.length()) {
-        _error = std::format("Expected '\"' at JSON::{}", _position);
+        setError("Expected '\"' at JSON::{}", _position);
         return std::nullopt;
     }
 
@@ -79,8 +78,7 @@ std::optional<Blueprint::JSON::Token> Blueprint::JSON::Lexer::parseNull()
         return Token(Type::NULL_VALUE, "null");
     }
 
-    _error = std::format(
-        "Expected 'null' at JSON::{}, got '{}'", _position, getWord());
+    setError("Expected 'null' at JSON::{}, got '{}'", _position, getWord());
 
     return std::nullopt;
 }
@@ -97,8 +95,8 @@ std::optional<Blueprint::JSON::Token> Blueprint::JSON::Lexer::parseBoolean()
         return Token(Type::BOOLEAN, "true");
     }
 
-    _error = std::format("Expected 'true' or 'false' at JSON::{}, got '{}'",
-        _position, getWord());
+    setError("Expected 'true' or 'false' at JSON::{}, got '{}'", _position,
+        getWord());
 
     return std::nullopt;
 }
@@ -134,7 +132,7 @@ std::optional<Blueprint::JSON::Token> Blueprint::JSON::Lexer::nextToken()
             }
     }
 
-    _error = std::format("Unexpected char '{}' at JSON::{}", ch, _position);
+    setError("Unexpected char '{}' at JSON::{}", ch, _position);
 
     return std::nullopt;
 }
