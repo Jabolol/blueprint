@@ -19,7 +19,7 @@ import type { Blueprint, InferSchema, PayloadMap } from "~/sources/types.ts";
  *  age: 21,
  * }
  *
- * const result = handle.parse(schema, data);
+ * const result = handle.verify(schema, data);
  *
  * console.log(`The schema is ${result ? "valid" : "invalid"}`);
  * ```
@@ -27,22 +27,20 @@ import type { Blueprint, InferSchema, PayloadMap } from "~/sources/types.ts";
  * @extends Constraints
  */
 export class b extends Constraints {
+  private _error: string | null = null;
   private _handle: Blueprint & Disposable;
-  private _parser: Deno.PointerObject<unknown>;
+  private _blueprint: Deno.PointerObject<unknown>;
 
-  /**
-   * Constructs a new instance of the blueprint class.
-   * @param handle - The handle for the blueprint.
-   */
   private constructor(handle: Blueprint & Disposable) {
-    const parser = handle.create_parser();
-    if (parser === null) {
-      throw new Error("Failed to create parser");
-    }
-
     super();
     this._handle = handle;
-    this._parser = parser;
+
+    const pointer = this._handle.create();
+    if (pointer === null) {
+      throw new Error("Failed to create blueprint");
+    }
+
+    this._blueprint = pointer;
   }
 
   /**
@@ -56,42 +54,57 @@ export class b extends Constraints {
   }
 
   /**
-   * Parses the given data using the specified schema.
+   * Verifies the given data using the specified schema.
    * @param schema - The schema to use for parsing.
-   * @param data - The data to parse.
+   * @param data - The data to verify.
    * @returns A boolean indicating whether the parsing was successful.
    */
-  parse<T extends ISchema<keyof PayloadMap>>(
+  verify<T extends ISchema<keyof PayloadMap>>(
     schema: T,
     data: InferSchema<T>,
   ): boolean {
-    return this._handle.parse(
-      this._parser,
+    const valid = this._handle.verify(
+      this._blueprint,
       schema.toPointer(),
       this.toPointer(JSON.stringify(data)),
     );
+
+    if (!valid) {
+      const error = this._handle.error(this._blueprint);
+      if (error === null) {
+        throw new Error("Failed to get error message");
+      }
+
+      const view = new Deno.UnsafePointerView(error);
+      this._error = view.getCString();
+    }
+
+    return valid;
   }
 
   /**
    * Disposes the blueprint and releases any resources.
    */
   [Symbol.dispose]() {
-    this._handle.destroy_parser(this._parser);
+    this._handle.destroy(this._blueprint);
     this._handle[Symbol.dispose]();
   }
 
-  /**
-   * Converts the given data to a pointer.
-   * @param data - The data to convert.
-   * @returns The pointer to the converted data.
-   */
   private toPointer(data: string) {
-    const bytes = new TextEncoder().encode(data);
+    const bytes = new TextEncoder().encode(data + "\0");
     const pointer = Deno.UnsafePointer.of(bytes);
     if (pointer === null) {
       throw new Error("Failed to create pointer");
     }
 
     return pointer;
+  }
+
+  /**
+   * Gets the error message if the last operation failed
+   * @returns The error message if the last operation failed, otherwise `null`.
+   */
+  public get error() {
+    return this._error;
   }
 }
