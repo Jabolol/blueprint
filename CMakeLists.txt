@@ -11,6 +11,7 @@ set(INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 set(SOURCES
     ${LIB_DIR}/Blueprint.cpp
+    ${LIB_DIR}/Schema.cpp
     ${LIB_DIR}/JSON/Token.cpp
     ${LIB_DIR}/JSON/Parser.cpp
     ${LIB_DIR}/JSON/Lexer.cpp
