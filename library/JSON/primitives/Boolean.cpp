@@ -19,3 +19,8 @@ std::string Blueprint::JSON::Primitives::Boolean::toString() const
 {
     return _value ? "true" : "false";
 }
+
+const std::string &Blueprint::JSON::Primitives::Boolean::getType() const
+{
+    return _type;
+}

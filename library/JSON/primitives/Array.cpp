@@ -38,3 +38,8 @@ std::string Blueprint::JSON::Primitives::Array::toString() const
 
     return ss.str();
 }
+
+const std::string &Blueprint::JSON::Primitives::Array::getType() const
+{
+    return _type;
+}

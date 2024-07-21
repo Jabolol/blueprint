@@ -22,3 +22,8 @@ std::string Blueprint::JSON::Primitives::Number::toString() const
     return _float ? std::to_string(_value)
                   : std::to_string(std::llround(_value));
 }
+
+const std::string &Blueprint::JSON::Primitives::Number::getType() const
+{
+    return _type;
+}

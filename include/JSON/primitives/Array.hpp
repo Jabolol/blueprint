@@ -11,6 +11,7 @@ namespace Blueprint::JSON::Primitives
 {
     class Array : public Interfaces::IPrimitive {
       private:
+        std::string _type = "array";
         std::vector<std::shared_ptr<Interfaces::IPrimitive>> _values;
 
       public:
@@ -22,6 +23,7 @@ namespace Blueprint::JSON::Primitives
             std::size_t index) const;
 
         std::string toString() const override;
+        const std::string &getType() const override;
     };
 } // namespace Blueprint::JSON::Primitives
 

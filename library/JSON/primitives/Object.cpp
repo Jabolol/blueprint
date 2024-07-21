@@ -1,4 +1,6 @@
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include "JSON/primitives/Object.hpp"
 
@@ -40,4 +42,26 @@ std::string Blueprint::JSON::Primitives::Object::toString() const
     result << "}";
 
     return result.str();
+}
+
+std::vector<std::reference_wrapper<const std::string>>
+Blueprint::JSON::Primitives::Object::keys(
+    std::shared_ptr<Blueprint::Interfaces::IPrimitive> raw)
+{
+    std::shared_ptr object = std::dynamic_pointer_cast<Object>(raw);
+    if (object == nullptr) {
+        throw std::runtime_error("Expected object");
+    }
+
+    std::vector<std::reference_wrapper<const std::string>> keys;
+    for (const auto &[key, value] : object->values()) {
+        keys.push_back(std::cref(key));
+    }
+
+    return keys;
+}
+
+const std::string &Blueprint::JSON::Primitives::Object::getType() const
+{
+    return _type;
 }

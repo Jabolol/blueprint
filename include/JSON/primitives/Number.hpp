@@ -9,8 +9,9 @@ namespace Blueprint::JSON::Primitives
 {
     class Number : public Interfaces::IPrimitive {
       private:
-        double _value;
         bool _float;
+        double _value;
+        std::string _type = "number";
 
       public:
         Number(const std::string &value);
@@ -19,6 +20,7 @@ namespace Blueprint::JSON::Primitives
         void value(double v);
 
         std::string toString() const override;
+        const std::string &getType() const override;
     };
 } // namespace Blueprint::JSON::Primitives
 

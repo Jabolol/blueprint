@@ -10,6 +10,7 @@ namespace Blueprint::JSON::Primitives
     class String : public Interfaces::IPrimitive {
       private:
         std::string _value;
+        std::string _type = "string";
 
       public:
         String(const std::string &value);
@@ -18,6 +19,7 @@ namespace Blueprint::JSON::Primitives
         void value(const std::string &value);
 
         std::string toString() const override;
+        const std::string &getType() const override;
     };
 } // namespace Blueprint::JSON::Primitives
 

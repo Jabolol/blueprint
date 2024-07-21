@@ -19,3 +19,8 @@ std::string Blueprint::JSON::Primitives::String::toString() const
 {
     return "\"" + _value + "\"";
 }
+
+const std::string &Blueprint::JSON::Primitives::String::getType() const
+{
+    return _type;
+}

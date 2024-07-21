@@ -1,6 +1,7 @@
 #ifndef __JOBJECT_HPP
 #define __JOBJECT_HPP
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -14,6 +15,7 @@ namespace Blueprint::JSON::Primitives
         std::unordered_map<std::string,
             std::shared_ptr<Interfaces::IPrimitive>>
             _values;
+        std::string _type = "object";
 
       public:
         void add(
@@ -26,6 +28,10 @@ namespace Blueprint::JSON::Primitives
             std::string key) const;
 
         std::string toString() const override;
+        const std::string &getType() const override;
+
+        static std::vector<std::reference_wrapper<const std::string>> keys(
+            std::shared_ptr<Blueprint::Interfaces::IPrimitive> raw);
     };
 } // namespace Blueprint::JSON::Primitives
 
