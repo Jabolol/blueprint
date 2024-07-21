@@ -9,6 +9,7 @@ namespace Blueprint::Interfaces
       public:
         virtual ~IPrimitive() = default;
         virtual std::string toString() const = 0;
+        virtual const std::string &getType() const = 0;
     };
 } // namespace Blueprint::Interfaces
 
