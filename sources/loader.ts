@@ -80,9 +80,10 @@ async function init(): Promise<Blueprint & Disposable> {
   const path = await getLibraryPath();
   const handle = Deno.dlopen(path, {
     version: { parameters: [], result: "pointer" },
-    create_parser: { parameters: [], result: "pointer" },
-    destroy_parser: { parameters: ["pointer"], result: "void" },
-    parse: { parameters: ["pointer", "pointer", "pointer"], result: "bool" },
+    create: { parameters: [], result: "pointer" },
+    destroy: { parameters: ["pointer"], result: "void" },
+    verify: { parameters: ["pointer", "pointer", "pointer"], result: "bool" },
+    error: { parameters: ["pointer"], result: "pointer" },
   });
 
   const versionPointer = handle.symbols.version();

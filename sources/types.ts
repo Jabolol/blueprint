@@ -17,23 +17,21 @@ export type SupportedOS = {
 /**
  * Represents a Blueprint object.
  * @property version - A function that returns the version of the library.
- * @property create_parser - A function that creates a new parser.
- * @property destroy_parser - A function that destroys an existing parser.
- * @param parser - A pointer to the parser to be destroyed.
- * @property parse - A function that parses the given data using the provided schema.
+ * @property verify - A function that parses the given data using the provided schema.
  * @param parser - A pointer to the parser to be used.
  * @param schema - A pointer to the schema to be used.
  * @param data - A pointer to the data to be parsed.
  */
 export type Blueprint = {
   version: () => Deno.PointerValue;
-  create_parser: () => Deno.PointerValue;
-  destroy_parser: (parser: Deno.PointerValue) => void;
-  parse: (
-    parser: Deno.PointerValue,
+  create: () => Deno.PointerValue;
+  destroy: (pointer: Deno.PointerValue) => void;
+  verify: (
+    pointer: Deno.PointerValue,
     schema: Deno.PointerValue,
     data: Deno.PointerValue,
   ) => boolean;
+  error: (pointer: Deno.PointerValue) => Deno.PointerValue;
 };
 
 /**
@@ -63,6 +61,7 @@ type InternalPayloadMap = {
   number: {
     "MIN_VALUE": number;
     "MAX_VALUE": number;
+    "VALUES": number[];
   };
   string: {
     "MIN_LENGTH": number;
@@ -121,3 +120,12 @@ export type InferSchema<T> = T extends NumberSchema ? number
     }
   : T extends ArraySchema<infer U> ? InferSchema<U>[]
   : never;
+
+/**
+ * Represents a schema entry.
+ * @template T - The key of the payload map.
+ */
+export type SchemaEntry<T extends keyof PayloadMap> = {
+  type: T;
+  constraints: { [k: number]: Payload<T>[keyof Payload<T>] }[];
+};
