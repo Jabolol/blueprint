@@ -5,6 +5,7 @@ import type {
   Keys,
   Payload,
   PayloadMap,
+  SchemaEntry,
 } from "~/sources/types.ts";
 
 /**
@@ -43,8 +44,8 @@ export abstract class ISchema<T extends keyof PayloadMap> {
         throw new Error(sprintf("Constraint %s already set", key));
       }
       this.set(key, true);
-      this._constraints.push(constraint);
     }
+    this._constraints.push(constraint);
 
     return this;
   }
@@ -56,11 +57,9 @@ export abstract class ISchema<T extends keyof PayloadMap> {
   }
 
   private set(id: Keys<PayloadMap[keyof PayloadMap]>, on: boolean): void {
-    if (on) {
-      this._bitmap |= FLAGS[id];
-    } else {
-      this._bitmap &= ~FLAGS[id];
-    }
+    this._bitmap = on
+      ? (this._bitmap | FLAGS[id])
+      : (this._bitmap & ~FLAGS[id]);
   }
 
   /**
@@ -68,7 +67,12 @@ export abstract class ISchema<T extends keyof PayloadMap> {
    * @returns The schema as an object.
    */
   public toObject(): object {
-    return this._constraints;
+    const data: SchemaEntry<T> = {
+      type: this.type,
+      constraints: this._constraints,
+    };
+
+    return data;
   }
 
   /**
@@ -85,11 +89,13 @@ export abstract class ISchema<T extends keyof PayloadMap> {
    */
   public toPointer(): Deno.PointerValue {
     const data = this.toString();
-    const bytes = new TextEncoder().encode(data);
+    const bytes = new TextEncoder().encode(data + "\0");
     const pointer = Deno.UnsafePointer.of(bytes);
 
     return pointer;
   }
+
+  protected abstract get type(): T;
 }
 
 /**
@@ -122,13 +128,8 @@ export class ObjectSchema<T extends Record<string, ISchema<keyof PayloadMap>>>
     return object;
   }
 
-  /**
-   * Adds an enum constraint to the object schema.
-   * @param values - The allowed values for the enum.
-   * @returns The updated object schema.
-   */
-  enum(values: string[]): this {
-    return this.addConstraint({ ENUM: values });
+  protected override get type(): "object" {
+    return "object";
   }
 }
 
@@ -155,7 +156,13 @@ export class ArraySchema<T extends ISchema<keyof PayloadMap>> extends ISchema<
    * @returns The object representation of the array schema.
    */
   override toObject(): object {
-    return this._data.toObject();
+    return [
+      this._data.toObject(),
+    ];
+  }
+
+  protected override get type(): "array" {
+    return "array";
   }
 
   /**
@@ -190,6 +197,10 @@ export class ArraySchema<T extends ISchema<keyof PayloadMap>> extends ISchema<
  * Represents a schema for validating numbers.
  */
 export class NumberSchema extends ISchema<"number"> {
+  protected override get type(): "number" {
+    return "number";
+  }
+
   /**
    * Sets the minimum value constraint for the number.
    * @param value The minimum value to set.
@@ -207,12 +218,25 @@ export class NumberSchema extends ISchema<"number"> {
   max(value: number): this {
     return this.addConstraint({ MAX_VALUE: value });
   }
+
+  /**
+   * Sets the allowed values constraint for the number.
+   * @param values The allowed values.
+   * @returns The updated NumberSchema instance.
+   */
+  values(values: [number, ...number[]]): this {
+    return this.addConstraint({ VALUES: values });
+  }
 }
 
 /**
  * Represents a string schema.
  */
 export class StringSchema extends ISchema<"string"> {
+  protected override get type(): "string" {
+    return "string";
+  }
+
   /**
    * Sets the length constraint for the string.
    * @param value The length value.
