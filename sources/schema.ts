@@ -27,7 +27,7 @@ const FLAGS: AllConstraints = {
  */
 export abstract class ISchema<T extends keyof PayloadMap> {
   private _bitmap: number = 0;
-  private _constraints: Payload<T>[] = [];
+  protected _constraints: Payload<T>[] = [];
 
   /**
    * Adds a constraint to the schema.
@@ -125,7 +125,11 @@ export class ObjectSchema<T extends Record<string, ISchema<keyof PayloadMap>>>
       object[key] = value.toObject();
     }
 
-    return object;
+    return {
+      type: this.type,
+      constraints: this._constraints,
+      data: object,
+    };
   }
 
   protected override get type(): "object" {
@@ -156,9 +160,11 @@ export class ArraySchema<T extends ISchema<keyof PayloadMap>> extends ISchema<
    * @returns The object representation of the array schema.
    */
   override toObject(): object {
-    return [
-      this._data.toObject(),
-    ];
+    return {
+      type: this.type,
+      constraints: this._constraints,
+      data: this._data.toObject(),
+    };
   }
 
   protected override get type(): "array" {
