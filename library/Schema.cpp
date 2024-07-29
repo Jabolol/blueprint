@@ -49,17 +49,6 @@ Blueprint::Schema::Schema()
 
 bool Blueprint::Schema::verify(std::string schema, std::string data)
 {
-    std::shared_ptr schemaArray =
-        Schema::as<JSON::Primitives::Array>(_parser.parse(schema));
-    if (schemaArray != nullptr) {
-        for (const auto &value : schemaArray->values()) {
-            if (!verify(value->toString(), data)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     std::shared_ptr schemaObject =
         Schema::as<JSON::Primitives::Object>(_parser.parse(schema));
     if (schemaObject == nullptr) {
@@ -85,22 +74,6 @@ bool Blueprint::Schema::handle(
     std::shared_ptr<JSON::Primitives::Object> schema,
     std::shared_ptr<Interfaces::IPrimitive> data)
 {
-    std::shared_ptr object = Schema::as<JSON::Primitives::Object>(data);
-    if (object != nullptr) {
-        setError("Object not implemented");
-        return false;
-    }
-
-    std::shared_ptr array = Schema::as<JSON::Primitives::Array>(data);
-    if (array != nullptr) {
-        for (const auto &value : array->values()) {
-            if (!handle(schema, value)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     std::shared_ptr constraints =
         Schema::as<JSON::Primitives::Array>((*schema)["constraints"]);
     if (constraints == nullptr) {
