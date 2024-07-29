@@ -68,6 +68,7 @@ export class b extends Constraints {
       schema.toPointer(),
       this.toPointer(JSON.stringify(data)),
     );
+    this._error = null;
 
     if (!valid) {
       const error = this._handle.error(this._blueprint);
