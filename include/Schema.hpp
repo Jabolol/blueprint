@@ -5,6 +5,7 @@
 #include <functional>
 
 #include "JSON/Parser.hpp"
+#include "JSON/primitives/Array.hpp"
 #include "JSON/primitives/Object.hpp"
 #include "interfaces/IPrimitive.hpp"
 
@@ -21,6 +22,8 @@ namespace Blueprint
         std::unordered_map<std::string, SchemaCallback> _callbacks;
 
         bool handle(std::shared_ptr<JSON::Primitives::Object> schema,
+            std::shared_ptr<Interfaces::IPrimitive> data);
+        bool check(std::shared_ptr<JSON::Primitives::Array> constraints,
             std::shared_ptr<Interfaces::IPrimitive> data);
 
         bool minValue(std::shared_ptr<Interfaces::IPrimitive> schema,
