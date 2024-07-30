@@ -289,7 +289,9 @@ export abstract class Constraints {
    * @param data The data defining the object schema.
    * @returns An instance of the ObjectSchema class.
    */
-  static object<T extends Record<string, ISchema<keyof PayloadMap>>>(data: T) {
+  static object<T extends Record<string, ISchema<keyof PayloadMap>>>(
+    data: T,
+  ): ObjectSchema<T> {
     return new ObjectSchema(data);
   }
 
@@ -298,7 +300,7 @@ export abstract class Constraints {
    * @param data The data defining the array schema.
    * @returns An instance of the ArraySchema class.
    */
-  static array<T extends ISchema<keyof PayloadMap>>(data: T) {
+  static array<T extends ISchema<keyof PayloadMap>>(data: T): ArraySchema<T> {
     return new ArraySchema(data);
   }
 
@@ -306,7 +308,7 @@ export abstract class Constraints {
    * Creates a new number schema.
    * @returns An instance of the NumberSchema class.
    */
-  static number() {
+  static number(): NumberSchema {
     return new NumberSchema();
   }
 
@@ -314,7 +316,7 @@ export abstract class Constraints {
    * Creates a new string schema.
    * @returns An instance of the StringSchema class.
    */
-  static string() {
+  static string(): StringSchema {
     return new StringSchema();
   }
 }

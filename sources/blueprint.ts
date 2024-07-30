@@ -47,7 +47,7 @@ export class b extends Constraints {
    * Initializes the FFI library and returns a new instance of the blueprint class.
    * @returns A promise that resolves to a new instance of the blueprint class.
    */
-  static async init() {
+  static async init(): Promise<b> {
     const handle = await init();
 
     return new this(handle);
@@ -105,7 +105,7 @@ export class b extends Constraints {
    * Gets the error message if the last operation failed
    * @returns The error message if the last operation failed, otherwise `null`.
    */
-  public get error() {
+  public get error(): string | null {
     return this._error;
   }
 }
