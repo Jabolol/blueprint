@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Configure and Build Project
         uses: threeal/cmake-action@main
         with:
@@ -40,6 +42,8 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Setup deno
         uses: denoland/setup-deno@v1
         with:
@@ -63,6 +67,7 @@ jobs:
       - name: Setup repo
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -99,5 +104,7 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Publish package
         run: npx jsr publish
