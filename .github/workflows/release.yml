@@ -1,8 +1,9 @@
 name: CI
-"on":
+on:
   push:
     branches:
       - main
+      - develop
 jobs:
   build:
     strategy:
@@ -16,11 +17,18 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
+      - name: Install g++ 13 on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y g++-13
+      - name: Select g++ 13 on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
       - name: Configure and Build Project
         uses: threeal/cmake-action@main
         with:
           options: |
-            ${{matrix.os == 'windows-latest' && 'CMAKE_GENERATOR_PLATFORM=x64' || '' }}
+            ${{ matrix.os == 'windows-latest' && 'CMAKE_GENERATOR_PLATFORM=x64' || '' }}
+            ${{ matrix.os == 'ubuntu-latest' && 'CMAKE_CXX_COMPILER=g++-13' || '' }}
           cxx-flags: >-
             ${{ matrix.os == 'windows-latest' && '/W4 /WX /EHsc' || '-Wall -Wextra -Werror' }}
       - name: Upload build artifacts
@@ -55,6 +63,7 @@ jobs:
   release:
     needs: test
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: write
     steps:
@@ -91,6 +100,7 @@ jobs:
   publish:
     needs: release
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       id-token: write
