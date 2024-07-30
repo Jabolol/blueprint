@@ -1,8 +1,9 @@
 #ifndef __SCHEMA_HPP
 #define __SCHEMA_HPP
 
-#include <format>
+#include <fmt/core.h>
 #include <functional>
+#include <iterator>
 
 #include "JSON/Parser.hpp"
 #include "JSON/primitives/Array.hpp"
@@ -46,9 +47,9 @@ namespace Blueprint
             std::shared_ptr<Interfaces::IPrimitive> primitive);
 
         template <typename... Args>
-        void setError(std::format_string<Args...> fmt, Args &&...args)
+        void setError(fmt::format_string<Args...> fmt, Args &&...args)
         {
-            std::format_to(
+            fmt::format_to(
                 std::back_inserter(_error), fmt, std::forward<Args>(args)...);
         }
 

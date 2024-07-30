@@ -199,7 +199,7 @@ bool Blueprint::Schema::minLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MIN_LENGTH"]->toString());
+        std::size_t length = std::stoll((*schema)["MIN_LENGTH"]->toString());
         std::vector values = primitive->values();
 
         if (values.size() < length) {
@@ -218,8 +218,8 @@ bool Blueprint::Schema::minLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MIN_LENGTH"]->toString());
-        int size = data->toString().size();
+        std::size_t length = std::stoll((*schema)["MIN_LENGTH"]->toString());
+        std::size_t size = data->toString().size();
 
         if (size < length) {
             setError("Minimum size expected {}, got {}", length, size);
@@ -245,7 +245,7 @@ bool Blueprint::Schema::maxLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MAX_LENGTH"]->toString());
+        std::size_t length = std::stoll((*schema)["MAX_LENGTH"]->toString());
         std::vector values = primitive->values();
 
         if (values.size() > length) {
@@ -264,8 +264,8 @@ bool Blueprint::Schema::maxLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MAX_LENGTH"]->toString());
-        int size = data->toString().size() - 2;
+        std::size_t length = std::stoll((*schema)["MAX_LENGTH"]->toString());
+        std::size_t size = data->toString().size() - 2;
 
         if (size > length) {
             setError("Maximum size expected {}, got {}", length, size);
@@ -299,8 +299,9 @@ bool Blueprint::Schema::enumValue(std::shared_ptr<Interfaces::IPrimitive> data,
     return false;
 }
 
-bool Blueprint::Schema::required(std::shared_ptr<Interfaces::IPrimitive> data,
-    std::shared_ptr<JSON::Primitives::Object> schema)
+bool Blueprint::Schema::required(
+    [[maybe_unused]] std::shared_ptr<Interfaces::IPrimitive> data,
+    [[maybe_unused]] std::shared_ptr<JSON::Primitives::Object> schema)
 {
     setError("{} not implemented", __func__);
     return false;

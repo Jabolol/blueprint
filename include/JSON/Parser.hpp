@@ -1,8 +1,9 @@
 #ifndef __PARSER_HPP
 #define __PARSER_HPP
 
-#include <format>
+#include <fmt/core.h>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -31,10 +32,10 @@ namespace Blueprint::JSON
         std::shared_ptr<Interfaces::IPrimitive> parseNull(Token &token);
 
         template <typename... Args>
-        void setError(std::format_string<Args...> fmt, Args &&...args)
+        void setError(fmt::format_string<Args...> fmt, Args &&...args)
         {
             auto it = std::back_inserter(_error);
-            std::format_to(it, fmt, std::forward<Args>(args)...);
+            fmt::format_to(it, fmt, std::forward<Args>(args)...);
         }
 
       public:

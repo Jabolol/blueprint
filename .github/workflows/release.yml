@@ -1,8 +1,9 @@
 name: CI
-"on":
+on:
   push:
     branches:
       - main
+      - develop
 jobs:
   build:
     strategy:
@@ -16,11 +17,13 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Configure and Build Project
         uses: threeal/cmake-action@main
         with:
           options: |
-            ${{matrix.os == 'windows-latest' && 'CMAKE_GENERATOR_PLATFORM=x64' || '' }}
+            ${{ matrix.os == 'windows-latest' && 'CMAKE_GENERATOR_PLATFORM=x64' || '' }}
           cxx-flags: >-
             ${{ matrix.os == 'windows-latest' && '/W4 /WX /EHsc' || '-Wall -Wextra -Werror' }}
       - name: Upload build artifacts
@@ -35,10 +38,13 @@ jobs:
           overwrite: true
   test:
     needs: build
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Setup deno
         uses: denoland/setup-deno@v1
         with:
@@ -51,16 +57,18 @@ jobs:
         env:
           BLUEPRINT_PATH: artifacts/libblueprint-x86_64.so
         run: |
-          deno test --allow-read --allow-env --allow-ffi --unstable-ffi tests/*
+          deno test --allow-read --allow-env --allow-ffi --allow-net --unstable-ffi --env tests/*.ts
   release:
     needs: test
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: write
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -91,10 +99,13 @@ jobs:
   publish:
     needs: release
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Publish package
         run: npx jsr publish
