@@ -20,9 +20,6 @@ jobs:
       - name: Install g++ 13 on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get install -y g++-13
-      - name: Select g++ 13 on Ubuntu
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 90
       - name: Configure and Build Project
         uses: threeal/cmake-action@main
         with:
