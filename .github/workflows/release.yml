@@ -22,7 +22,6 @@ jobs:
         with:
           options: |
             ${{ matrix.os == 'windows-latest' && 'CMAKE_GENERATOR_PLATFORM=x64' || '' }}
-            ${{ matrix.os == 'ubuntu-latest' && 'CMAKE_CXX_COMPILER=clang++-14' || '' }}
           cxx-flags: >-
             ${{ matrix.os == 'windows-latest' && '/W4 /WX /EHsc' || '-Wall -Wextra -Werror' }}
       - name: Upload build artifacts
