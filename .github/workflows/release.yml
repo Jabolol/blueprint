@@ -57,7 +57,7 @@ jobs:
           echo "BLUEPRINT_PATH=artifacts/libblueprint-x86_64.so" > .env
       - name: Run tests
         run: |
-          deno test --allow-read --allow-env --allow-ffi --unstable-ffi --env tests/*.ts
+          deno test --allow-read --allow-env --allow-ffi --allow-net --unstable-ffi --env tests/*.ts
   release:
     needs: test
     runs-on: ubuntu-latest
