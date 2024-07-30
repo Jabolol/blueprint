@@ -299,8 +299,9 @@ bool Blueprint::Schema::enumValue(std::shared_ptr<Interfaces::IPrimitive> data,
     return false;
 }
 
-bool Blueprint::Schema::required(std::shared_ptr<Interfaces::IPrimitive> data,
-    std::shared_ptr<JSON::Primitives::Object> schema)
+bool Blueprint::Schema::required(
+    [[maybe_unused]] std::shared_ptr<Interfaces::IPrimitive> data,
+    [[maybe_unused]] std::shared_ptr<JSON::Primitives::Object> schema)
 {
     setError("{} not implemented", __func__);
     return false;
