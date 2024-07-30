@@ -257,7 +257,7 @@ export class StringSchema extends ISchema<"string"> {
    * @param value The minimum length value.
    * @returns The updated string schema.
    */
-  minLength(value: number): this {
+  min(value: number): this {
     return this.addConstraint({ MIN_LENGTH: value });
   }
 
@@ -266,7 +266,7 @@ export class StringSchema extends ISchema<"string"> {
    * @param value The maximum length value.
    * @returns The updated string schema.
    */
-  maxLength(value: number): this {
+  max(value: number): this {
     return this.addConstraint({ MAX_LENGTH: value });
   }
 
