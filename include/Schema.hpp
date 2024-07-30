@@ -3,6 +3,7 @@
 
 #include <fmt/core.h>
 #include <functional>
+#include <iterator>
 
 #include "JSON/Parser.hpp"
 #include "JSON/primitives/Array.hpp"

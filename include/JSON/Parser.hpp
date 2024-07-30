@@ -3,6 +3,7 @@
 
 #include <fmt/core.h>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <unordered_map>

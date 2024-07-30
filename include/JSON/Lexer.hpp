@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <fmt/core.h>
+#include <iterator>
 #include <optional>
 
 #include "JSON/Token.hpp"
