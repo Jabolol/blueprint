@@ -218,8 +218,8 @@ bool Blueprint::Schema::minLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MIN_LENGTH"]->toString());
-        int size = data->toString().size();
+        std::size_t length = std::stoll((*schema)["MIN_LENGTH"]->toString());
+        std::size_t size = data->toString().size();
 
         if (size < length) {
             setError("Minimum size expected {}, got {}", length, size);
