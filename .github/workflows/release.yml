@@ -17,15 +17,12 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
-      - name: Install g++ 13 on Ubuntu
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get install -y g++-13
       - name: Configure and Build Project
         uses: threeal/cmake-action@main
         with:
           options: |
             ${{ matrix.os == 'windows-latest' && 'CMAKE_GENERATOR_PLATFORM=x64' || '' }}
-            ${{ matrix.os == 'ubuntu-latest' && 'CMAKE_CXX_COMPILER=clang++-13' || '' }}
+            ${{ matrix.os == 'ubuntu-latest' && 'CMAKE_CXX_COMPILER=clang++-14' || '' }}
           cxx-flags: >-
             ${{ matrix.os == 'windows-latest' && '/W4 /WX /EHsc' || '-Wall -Wextra -Werror' }}
       - name: Upload build artifacts
