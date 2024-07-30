@@ -1,8 +1,10 @@
 #include <memory>
+#include <string>
 
 #include "JSON/primitives/Array.hpp"
 #include "JSON/primitives/Number.hpp"
 #include "JSON/primitives/Object.hpp"
+#include "JSON/primitives/String.hpp"
 #include "Schema.hpp"
 #include "interfaces/IPrimitive.hpp"
 
@@ -65,15 +67,88 @@ bool Blueprint::Schema::verify(std::string schema, std::string data)
     try {
         return handle(schemaObject, dataObject);
     } catch (const std::out_of_range &error) {
-        setError("Invalid type '{}'", dataObject->getType());
+        setError("Out of bounds access: {}", error.what());
         return false;
     }
 }
 
+// TODO(jabolo): Improve error messages to include the invalid value path
 bool Blueprint::Schema::handle(
     std::shared_ptr<JSON::Primitives::Object> schema,
     std::shared_ptr<Interfaces::IPrimitive> data)
 {
+    std::string type = data->getType();
+
+    if (type == "array") {
+        std::shared_ptr primitive = Schema::as<JSON::Primitives::Array>(data);
+        if (primitive == nullptr) {
+            setError("Invalid array '{}'", data->toString());
+            return false;
+        }
+
+        std::shared_ptr constraints =
+            Schema::as<JSON::Primitives::Array>((*schema)["constraints"]);
+        if (constraints == nullptr) {
+            setError("Invalid constraints '{}'", schema->toString());
+            return false;
+        }
+
+        std::shared_ptr innerSchema =
+            Schema::as<JSON::Primitives::Object>((*schema)["data"]);
+        if (innerSchema == nullptr) {
+            setError("Invalid innerSchema '{}'", schema->toString());
+            return false;
+        }
+
+        if (!check(constraints, data)) {
+            return false;
+        }
+
+        for (const auto &value : primitive->values()) {
+            if (!handle(innerSchema, value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    if (type == "object") {
+        std::shared_ptr primitive = Schema::as<JSON::Primitives::Object>(data);
+        if (primitive == nullptr) {
+            setError("Invalid object '{}'", data->toString());
+            return false;
+        }
+
+        std::shared_ptr constraints =
+            Schema::as<JSON::Primitives::Array>((*schema)["constraints"]);
+        if (constraints == nullptr) {
+            setError("Invalid constraints '{}'", schema->toString());
+            return false;
+        }
+
+        std::shared_ptr innerSchema =
+            Schema::as<JSON::Primitives::Object>((*schema)["data"]);
+        if (innerSchema == nullptr) {
+            setError("Invalid innerSchema '{}'", schema->toString());
+            return false;
+        }
+
+        if (!check(constraints, data)) {
+            return false;
+        }
+
+        for (const auto &key : JSON::Primitives::Object::keys(primitive)) {
+            std::shared_ptr objectSchema =
+                Schema::as<JSON::Primitives::Object>((*innerSchema)[key]);
+            if (!handle(objectSchema, (*primitive)[key])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     std::shared_ptr constraints =
         Schema::as<JSON::Primitives::Array>((*schema)["constraints"]);
     if (constraints == nullptr) {
@@ -81,23 +156,7 @@ bool Blueprint::Schema::handle(
         return false;
     }
 
-    for (const auto &value : constraints->values()) {
-        auto object = Schema::as<JSON::Primitives::Object>(value);
-        auto keys = JSON::Primitives::Object::keys(object);
-
-        for (const std::string &key : keys) {
-            auto cb = _callbacks.find(key);
-            if (cb == _callbacks.end()) {
-                setError("Invalid constraint '{}'", key);
-                return false;
-            }
-            if (!cb->second(data, object)) {
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return check(constraints, data);
 }
 
 bool Blueprint::Schema::minValue(std::shared_ptr<Interfaces::IPrimitive> data,
@@ -131,15 +190,92 @@ bool Blueprint::Schema::maxValue(std::shared_ptr<Interfaces::IPrimitive> data,
 bool Blueprint::Schema::minLength(std::shared_ptr<Interfaces::IPrimitive> data,
     std::shared_ptr<JSON::Primitives::Object> schema)
 {
-    setError("{} not implemented", __func__);
+    std::string type = data->getType();
+
+    if (type == "array") {
+        std::shared_ptr primitive = Schema::as<JSON::Primitives::Array>(data);
+        if (primitive == nullptr) {
+            setError("Invalid array '{}'", data->toString());
+            return false;
+        }
+
+        int length = std::stoi((*schema)["MIN_LENGTH"]->toString());
+        std::vector values = primitive->values();
+
+        if (values.size() < length) {
+            setError("Minimum size expected {} elements, got {}", length,
+                values.size());
+            return false;
+        }
+
+        return true;
+    }
+
+    if (type == "string") {
+        std::shared_ptr primitive = Schema::as<JSON::Primitives::String>(data);
+        if (primitive == nullptr) {
+            setError("Invalid string '{}'", data->toString());
+            return false;
+        }
+
+        int length = std::stoi((*schema)["MIN_LENGTH"]->toString());
+        int size = data->toString().size();
+
+        if (size < length) {
+            setError("Minimum size expected {}, got {}", length, size);
+            return false;
+        }
+
+        return true;
+    }
+
+    setError("Expected 'array' or 'string', got {}", type);
     return false;
 }
 
 bool Blueprint::Schema::maxLength(std::shared_ptr<Interfaces::IPrimitive> data,
     std::shared_ptr<JSON::Primitives::Object> schema)
 {
-    // valid for ARRAY and STRING
-    setError("{} not implemented", __func__);
+    std::string type = data->getType();
+
+    if (type == "array") {
+        std::shared_ptr primitive = Schema::as<JSON::Primitives::Array>(data);
+        if (primitive == nullptr) {
+            setError("Invalid array '{}'", data->toString());
+            return false;
+        }
+
+        int length = std::stoi((*schema)["MAX_LENGTH"]->toString());
+        std::vector values = primitive->values();
+
+        if (values.size() > length) {
+            setError("Maximum size expected {} elements, got {}", length,
+                values.size());
+            return false;
+        }
+
+        return true;
+    }
+
+    if (type == "string") {
+        std::shared_ptr primitive = Schema::as<JSON::Primitives::String>(data);
+        if (primitive == nullptr) {
+            setError("Invalid string '{}'", data->toString());
+            return false;
+        }
+
+        int length = std::stoi((*schema)["MAX_LENGTH"]->toString());
+        int size = data->toString().size() - 2;
+
+        if (size > length) {
+            setError("Maximum size expected {}, got {}", length, size);
+            return false;
+        }
+
+        return true;
+    }
+
+    setError("Expected 'array' or 'string', got {}", type);
     return false;
 }
 
@@ -166,7 +302,6 @@ bool Blueprint::Schema::enumValue(std::shared_ptr<Interfaces::IPrimitive> data,
 bool Blueprint::Schema::required(std::shared_ptr<Interfaces::IPrimitive> data,
     std::shared_ptr<JSON::Primitives::Object> schema)
 {
-    // valid for ALL, SPECIAL CASE
     setError("{} not implemented", __func__);
     return false;
 }
@@ -177,8 +312,29 @@ bool Blueprint::Schema::exactValue(
 {
     std::shared_ptr array = Schema::as<JSON::Primitives::Array>(data);
     if (array != nullptr) {
-        setError("Array not implemented");
-        return false;
+        std::shared_ptr values =
+            Schema::as<JSON::Primitives::Array>((*schema)["VALUES"]);
+        if (values == nullptr) {
+            setError("Invalid VALUES constraint '{}'", schema->toString());
+            return false;
+        }
+
+        for (const auto &value : array->values()) {
+            bool found = false;
+            for (const auto &constraint : values->values()) {
+                if (value->toString() == constraint->toString()) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                setError("Value {} not in VALUES", value->toString());
+                return false;
+            }
+        }
+
+        return true;
     }
 
     std::shared_ptr number = Schema::as<JSON::Primitives::Number>(data);
@@ -186,6 +342,10 @@ bool Blueprint::Schema::exactValue(
         double primitive = std::stod(number->toString());
         std::shared_ptr values =
             Schema::as<JSON::Primitives::Array>((*schema)["VALUES"]);
+        if (values == nullptr) {
+            setError("Invalid VALUES constraint '{}'", schema->toString());
+            return false;
+        }
 
         for (const auto &value : values->values()) {
             double constraint = std::stod(value->toString());
@@ -212,4 +372,27 @@ std::shared_ptr<T> Blueprint::Schema::as(
 const std::string &Blueprint::Schema::getError() const
 {
     return _error;
+}
+
+bool Blueprint::Schema::check(
+    std::shared_ptr<JSON::Primitives::Array> constraints,
+    std::shared_ptr<Interfaces::IPrimitive> data)
+{
+    for (const auto &value : constraints->values()) {
+        auto object = Schema::as<JSON::Primitives::Object>(value);
+        auto keys = JSON::Primitives::Object::keys(object);
+
+        for (const std::string &key : keys) {
+            auto cb = _callbacks.find(key);
+            if (cb == _callbacks.end()) {
+                setError("Invalid constraint '{}'", key);
+                return false;
+            }
+            if (!cb->second(data, object)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
