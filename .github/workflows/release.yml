@@ -59,7 +59,7 @@ jobs:
         run: |
           deno test --allow-read --allow-env --allow-ffi --allow-net --unstable-ffi --env tests/*.ts
   release:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     permissions:
