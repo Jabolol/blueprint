@@ -199,7 +199,7 @@ bool Blueprint::Schema::minLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MIN_LENGTH"]->toString());
+        std::size_t length = std::stoll((*schema)["MIN_LENGTH"]->toString());
         std::vector values = primitive->values();
 
         if (values.size() < length) {
@@ -245,7 +245,7 @@ bool Blueprint::Schema::maxLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MAX_LENGTH"]->toString());
+        std::size_t length = std::stoll((*schema)["MAX_LENGTH"]->toString());
         std::vector values = primitive->values();
 
         if (values.size() > length) {
@@ -264,8 +264,8 @@ bool Blueprint::Schema::maxLength(std::shared_ptr<Interfaces::IPrimitive> data,
             return false;
         }
 
-        int length = std::stoi((*schema)["MAX_LENGTH"]->toString());
-        int size = data->toString().size() - 2;
+        std::size_t length = std::stoll((*schema)["MAX_LENGTH"]->toString());
+        std::size_t size = data->toString().size() - 2;
 
         if (size > length) {
             setError("Maximum size expected {}, got {}", length, size);
