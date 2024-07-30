@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/library)
 set(INC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -38,3 +39,5 @@ set_target_properties(blueprint PROPERTIES OUTPUT_NAME "blueprint-${LIB_SUFFIX}"
 
 target_include_directories(blueprint PUBLIC ${INC_DIR})
 target_include_directories(blueprint PRIVATE ${EXT_DIR}/fmt/include)
+
+target_link_libraries(blueprint PRIVATE fmt::fmt)
