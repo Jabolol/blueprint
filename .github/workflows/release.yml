@@ -89,7 +89,7 @@ jobs:
           body_path: release_body.txt
 
   publish:
-    needs: build
+    needs: release
     runs-on: ubuntu-latest
     permissions:
       contents: read
