@@ -16,8 +16,6 @@ jobs:
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Configure and Build Project
         uses: threeal/cmake-action@main
         with:
@@ -35,8 +33,27 @@ jobs:
             build/libblueprint-x86_64.dylib
             build/libblueprint-aarch64.dylib
           overwrite: true
-  release:
+  test:
     needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v4
+      - name: Setup deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+      - name: Download linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ubuntu-latest-artifact
+      - name: Run tests
+        env:
+          BLUEPRINT_PATH: artifacts/libblueprint-x86_64.so
+        run: |
+          deno test --allow-read --allow-env --allow-ffi --unstable-ffi tests/*
+  release:
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -72,7 +89,7 @@ jobs:
           body_path: release_body.txt
 
   publish:
-    needs: build
+    needs: release
     runs-on: ubuntu-latest
     permissions:
       contents: read

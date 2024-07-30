@@ -76,11 +76,33 @@ async function getLibraryPath(): Promise<string> {
  * Initializes the blueprint by loading the library and returning a Blueprint object.
  * @returns A Promise that resolves to a Blueprint object.
  */
-async function init(): Promise<Blueprint> {
+async function init(): Promise<Blueprint & Disposable> {
   const path = await getLibraryPath();
   const handle = Deno.dlopen(path, {
-    hello: { parameters: [], result: "void" },
+    version: { parameters: [], result: "pointer" },
+    create: { parameters: [], result: "pointer" },
+    destroy: { parameters: ["pointer"], result: "void" },
+    verify: { parameters: ["pointer", "pointer", "pointer"], result: "bool" },
+    error: { parameters: ["pointer"], result: "pointer" },
   });
+
+  const versionPointer = handle.symbols.version();
+  if (versionPointer === null) {
+    throw new Error(sprintf("Failed to get version from %s", path));
+  }
+
+  const view = new Deno.UnsafePointerView(versionPointer);
+  const version = view.getCString();
+  if (version !== config.version) {
+    throw new Error(
+      sprintf(
+        "Expected v%s, but got v%s. Please delete %s or supply a path to the correct library.",
+        config.version,
+        version,
+        path,
+      ),
+    );
+  }
 
   return {
     ...handle.symbols,
