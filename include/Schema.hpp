@@ -48,7 +48,8 @@ namespace Blueprint
         template <typename... Args>
         void setError(std::format_string<Args...> fmt, Args &&...args)
         {
-            _error = std::format(fmt, std::forward<Args>(args)...);
+            std::format_to(
+                std::back_inserter(_error), fmt, std::forward<Args>(args)...);
         }
 
       public:
