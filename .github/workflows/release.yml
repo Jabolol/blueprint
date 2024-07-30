@@ -53,10 +53,8 @@ jobs:
         with:
           name: ubuntu-latest-artifact
       - name: Run tests
-        env:
-          BLUEPRINT_PATH: artifacts/libblueprint-x86_64.so
         run: |
-          deno test --allow-read --allow-env --allow-ffi --unstable-ffi tests/*
+          BLUEPRINT_PATH=artifacts/libblueprint-x86_64.so deno test --allow-read --allow-env --allow-ffi --unstable-ffi tests/*
   release:
     needs: test
     runs-on: ubuntu-latest
