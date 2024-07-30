@@ -52,9 +52,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ubuntu-latest-artifact
+      - name: Create .env file
+        run: |
+          echo "BLUEPRINT_PATH=artifacts/libblueprint-x86_64.so" > .env
       - name: Run tests
-        env:
-          BLUEPRINT_PATH: artifacts/libblueprint-x86_64.so
         run: |
           deno test --allow-read --allow-env --allow-ffi --unstable-ffi --env tests/*.ts
   release:
